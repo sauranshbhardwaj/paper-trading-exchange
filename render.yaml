@@ -1,0 +1,30 @@
+# Render Blueprint: in the Render dashboard choose New → Blueprint and point it
+# at this repo. It creates the Postgres database and the web service together.
+services:
+  - type: web
+    name: tilt-exchange
+    runtime: node
+    plan: free
+    # Dev dependencies (Vite, TypeScript) are needed to build the client.
+    buildCommand: npm ci --include=dev && npm run build
+    # Migrations run automatically on boot; the same process serves API, WebSocket and UI.
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Node >= 22.18 runs our TypeScript directly (type stripping).
+      - key: NODE_VERSION
+        value: '22'
+      - key: PRICE_FEED
+        value: coinbase
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tilt-db
+          property: connectionString
+
+databases:
+  - name: tilt-db
+    plan: free
+    databaseName: pte
+    user: pte
