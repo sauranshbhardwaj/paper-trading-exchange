@@ -213,7 +213,8 @@ Notice the layering: **pure logic at the bottom** (money, rules, matching, settl
 - **Never `Number()` an amount** except for display percentages. Use `parseUnits`/`formatUnits`.
 - **Never touch `balances` outside a settlement/cancellation path in `OrderService`.** If the bot or deposits need to credit money, add a method there that uses `BalanceDeltas` + `applyBalanceDeltas`.
 - **Deposits must be idempotent.** The blockchain watcher _will_ see the same transaction twice (retries, reorgs). Store the tx hash with a UNIQUE constraint and credit inside the same transaction.
-- **Withdrawals must be capped to what was deposited.** Otherwise someone buys ETH with play money and withdraws real Sepolia ETH, draining the exchange wallet. (This is in the proposal additions.)
+- **Play money must never become real money.** If a single "ETH" balance could hold both play/Sepolia ETH and real ETH, someone could buy "ETH" with the free $100k (or deposit free Sepolia ETH) and withdraw it as _real_ ETH — draining the wallet that holds your actual money. That's why real-money mode uses **separate asset codes and a separate market** (`ETH.base`/`USDC.base`), and why test-ETH withdrawals are capped to what was deposited. Think of it like a casino: chips from the free-play table don't work at the cashier.
+- **Real-money mode is fenced in, not just "turned on".** Allowlisted wallets only (anyone can find a public website), small caps, chain-ID checks so nobody sends mainnet money to a testnet flow, admin-approved withdrawals, and a kill switch. The rules live in `CLAUDE.md` so every AI session follows them too.
 - **Render free tier sleeps after ~15 minutes idle** — the bot and Coinbase feed stop with it. Wake it up before demos.
 - **Don't trust the client's price math.** The form preview is a convenience; the server re-validates everything.
 

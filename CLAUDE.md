@@ -50,17 +50,33 @@ Set `PRICE_FEED=mock` in `.env` to develop without internet (random-walk prices)
 - One component per file; pure logic in `client/src/lib/` with tests.
 - Commits: `type(scope): description` (feat, fix, refactor, test, docs, chore).
 
+## Real-money mode (demo only) — non-negotiable rules
+
+The professor asked for optional real-money support. Only the team and the professor use it, but the site is public,
+so the code must make misuse impossible:
+
+1. **Separate ledgers.** Real assets get their own asset codes (e.g. `ETH.base`, `USDC.base`) and their own market.
+   They never trade against play `USD`, play coins or Sepolia ETH, and withdrawals of a real asset come only from that
+   asset's real balance. Play money must never be convertible into real money.
+2. **Off by default** behind a `REAL_MONEY_ENABLED` env flag; **wallet allowlist** (team + professor); **per-user and
+   total caps**; **chain-ID check** before every wallet transaction (Base 8453 for real, Sepolia 11155111 for test).
+3. **Withdrawals:** signed by the linked wallet, sent only to that wallet, admin-approved, idempotent (one request id →
+   at most one on-chain transfer), and auto-paused if the exchange wallet's on-chain balance is below total user balances.
+4. **Deposits:** credited only from allowlisted, linked wallets, after confirmations, once per tx hash (UNIQUE constraint).
+5. **Keys:** the exchange wallet key lives only in Render env vars — never in code, logs, or `.env.example`.
+6. Develop and test on Sepolia / Base Sepolia / a local chain. Real-money transactions are run by the team by hand.
+
 ## Roadmap (10 steps, 5 each) — keep this updated
 
-| #   | Owner    | Step                                                                                          | Status  |
-| --- | -------- | --------------------------------------------------------------------------------------------- | ------- |
-| 1   | Sauransh | Foundation: monorepo, auth, matching engine, settlement, live book/trades over WS, trading UI | ✅ done |
-| 2   | Nitish   | Deploy to Render + market-making bot v1 (seeded inventory, quotes around Coinbase)            | ☐       |
-| 3   | Sauransh | Portfolio page: holdings, avg cost, P&L, trade history; portfolio value snapshots             | ☐       |
-| 4   | Nitish   | MetaMask + Sign-In with Ethereum (new accounts and linking to existing ones)                  | ☐       |
-| 5   | Sauransh | Sepolia deposits: watch chain via Alchemy, confirmations, idempotent crediting                | ☐       |
-| 6   | Nitish   | Leaderboard + candlestick charts (OHLC from our trades, Coinbase overlay)                     | ☐       |
-| 7   | Sauransh | Advanced orders: IOC, FOK, stop-limit; maker/taker fees                                       | ☐       |
-| 8   | Nitish   | Testing depth: Stryker mutation testing, Playwright E2E, GitHub Actions CI                    | ☐       |
-| 9   | Sauransh | Withdrawals (capped to net deposits) + smarter Avellaneda–Stoikov bot                         | ☐       |
-| 10  | Nitish   | Competitions/leagues, circuit breaker, rate-limit/security pass, demo polish                  | ☐       |
+| #   | Owner    | Step                                                                                                 | Status  |
+| --- | -------- | ---------------------------------------------------------------------------------------------------- | ------- |
+| 1   | Sauransh | Foundation: monorepo, auth, matching engine, settlement, live book/trades over WS, trading UI        | ✅ done |
+| 2   | Nitish   | Deploy to Render + market-making bot v1 (seeded inventory, quotes around Coinbase)                   | ☐       |
+| 3   | Sauransh | Portfolio page: holdings, avg cost, P&L, trade history, portfolio value chart, account reset         | ☐       |
+| 4   | Nitish   | MetaMask + Sign-In with Ethereum (new accounts and linking to existing ones)                         | ☐       |
+| 5   | Sauransh | Deposits for any network (Sepolia + Base): Alchemy, confirmations, idempotent, allowlist, caps       | ☐       |
+| 6   | Nitish   | Leaderboard + candlestick charts (our trades + Coinbase overlay) + depth chart                       | ☐       |
+| 7   | Sauransh | Advanced orders: IOC, FOK, stop-limit; maker/taker fees                                              | ☐       |
+| 8   | Nitish   | Testing depth: Stryker, Playwright E2E, GitHub Actions CI; exchange audit page                       | ☐       |
+| 9   | Sauransh | Withdrawals (capped test ETH; admin-approved real) + real-money ETH-USDC market and its guardrails   | ☐       |
+| 10  | Nitish   | Circuit breaker, security/rate-limit pass, demo polish; stretch: leagues, bot personalities, A–S bot | ☐       |
