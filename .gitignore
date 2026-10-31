@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+reports/
+.stryker-tmp/
+.env
+.env.local
+*.log
+.DS_Store
+.vite/

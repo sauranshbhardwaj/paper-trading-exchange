@@ -1,0 +1,39 @@
+{
+  "name": "paper-trading-exchange",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,magenta \"npm run dev -w @pte/server\" \"npm run dev -w @pte/client\"",
+    "build": "npm run build -w @pte/client",
+    "start": "npm run start -w @pte/server",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "db:migrate": "npm run db:migrate -w @pte/server",
+    "db:seed": "npm run db:seed -w @pte/server",
+    "test": "npm run test --workspaces --if-present",
+    "test:integration": "npm run test:integration -w @pte/server",
+    "test:all": "npm test && npm run test:integration",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "concurrently": "^10.0.6",
+    "eslint": "^10.14.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.1"
+  }
+}
