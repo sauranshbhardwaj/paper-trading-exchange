@@ -3,7 +3,6 @@ import { loginSchema, registerSchema } from '@pte/shared';
 import type { AppContext } from '../context.ts';
 import { AppError } from '../errors.ts';
 import { rateLimiter } from '../http/rateLimit.ts';
-import { currentUser, requireAuth } from './middleware.ts';
 import { dummyPasswordHash, verifyPassword } from './password.ts';
 import {
   createSession,
@@ -60,8 +59,10 @@ export function authRouter(ctx: AppContext, options: { rateLimit: boolean }): Ro
     res.status(204).end();
   });
 
-  router.get('/me', requireAuth, (req, res) => {
-    res.json({ user: toUserDto(currentUser(req)) });
+  // A session check, not a protected resource: anonymous visitors get { user: null }
+  // instead of a 401, so the browser console isn't full of red errors on every page load.
+  router.get('/me', (req, res) => {
+    res.json({ user: req.user ? toUserDto(req.user) : null });
   });
 
   return router;

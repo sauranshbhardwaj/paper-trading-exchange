@@ -97,15 +97,20 @@ describe('auth', () => {
 
   it('logs out by deleting the session server-side', async () => {
     const agent = await registeredAgent();
-    await agent.get('/api/auth/me').expect(200);
+    expect((await agent.get('/api/auth/me').expect(200)).body.user.email).toBe(ALICE.email);
     await agent.post('/api/auth/logout').expect(204);
-    await agent.get('/api/auth/me').expect(401);
+    expect((await agent.get('/api/auth/me').expect(200)).body).toEqual({ user: null });
     const { rows } = await ctx.pool.query('SELECT count(*)::int AS n FROM sessions');
     expect(rows[0].n).toBe(0);
   });
 
   it('ignores forged session cookies', async () => {
-    await request(app).get('/api/auth/me').set('Cookie', 'pte_session=forged').expect(401);
+    const response = await request(app)
+      .get('/api/auth/me')
+      .set('Cookie', 'pte_session=forged')
+      .expect(200);
+    expect(response.body).toEqual({ user: null });
+    await request(app).get('/api/balances').set('Cookie', 'pte_session=forged').expect(401);
   });
 });
 
